@@ -1,0 +1,1 @@
+intro to Django. Setting it up and all that
