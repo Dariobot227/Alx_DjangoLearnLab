@@ -23,10 +23,7 @@ class LibraryDetailView(DetailView):
     model = Library
     template_name = 'relationship_app/library_detail.html'
     context_object_name = 'library'
-class UserLoginView(LoginView):
-    template_name = 'relationship_app/login.html'
-class UserLogoutView(LogoutView):
-    template_name = 'relationship_app/logout.html'
+
 def register(request):
     if request.method == 'POST':
         form = UserCreationForm(request.POST)
