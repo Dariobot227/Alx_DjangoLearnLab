@@ -1,0 +1,13 @@
+{% extends "admin/base_site.html" %}  {# optional, or use base.html if you have one #}
+
+{% block content %}
+  <h1>Book Form</h1>
+
+  <form method="POST">
+    {% csrf_token %}
+    {{ form.as_p }}
+    <button type="submit">Submit</button>
+  </form>
+
+  <a href="{% url 'list_books' %}">Back to Book List</a>
+{% endblock %}
