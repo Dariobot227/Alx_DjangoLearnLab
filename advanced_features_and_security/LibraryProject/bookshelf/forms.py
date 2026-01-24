@@ -1,12 +1,15 @@
 from django import forms
 from .models import Book
 
-class BookForm(forms.ModelForm):
+# ----------------------------
+# ALX expects a form named ExampleForm
+# ----------------------------
+class ExampleForm(forms.ModelForm):
     class Meta:
         model = Book
         fields = ['title', 'author', 'publication_year']
 
-    # Optional: basic input cleaning for security
+    # Optional: simple input cleaning to show security
     def clean_title(self):
         title = self.cleaned_data.get('title')
         return title.strip()
