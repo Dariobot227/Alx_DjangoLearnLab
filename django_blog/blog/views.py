@@ -6,7 +6,7 @@ from django.db.models import Q
 
 from .models import Post, Comment
 from .forms import PostForm, CommentForm
-
+from taggit.models import Tag
 
 # -----------------------------
 # Post Views
@@ -110,3 +110,11 @@ class PostSearchListView(ListView):
                 Q(tags__name__icontains=query)
             ).distinct()
         return Post.objects.none()
+class PostByTagListView(ListView):
+    model = Post
+    template_name = "blog/post_by_tag.html"
+    context_object_name = "posts"
+
+    def get_queryset(self):
+        tag_slug = self.kwargs.get("tag_slug")
+        return Post.objects.filter(tags__slug=tag_slug)
