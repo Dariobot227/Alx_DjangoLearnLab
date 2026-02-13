@@ -1,26 +1,19 @@
 from django.urls import path
-from django.contrib.auth.views import LoginView, LogoutView
 from . import views
 
 urlpatterns = [
+    # Post URLs
     path("", views.PostListView.as_view(), name="post_list"),
-    path("posts/", views.PostListView.as_view(), name="posts"),
-
     path("post/<int:pk>/", views.PostDetailView.as_view(), name="post_detail"),
     path("post/new/", views.PostCreateView.as_view(), name="post_create"),
     path("post/<int:pk>/update/", views.PostUpdateView.as_view(), name="post_update"),
-
     path("post/<int:pk>/delete/", views.PostDeleteView.as_view(), name="post_delete"),
 
-    path("register/", views.register, name="register"),
-    path("login/", LoginView.as_view(template_name="blog/login.html"), name="login"),
-    path("logout/", LogoutView.as_view(), name="logout"),
-    path("profile/", views.profile, name="profile"),
+    # Comment URLs
+    path("post/<int:pk>/comment/new/", views.CommentCreateView.as_view(), name="comment_create"),
+    path("comment/<int:pk>/update/", views.CommentUpdateView.as_view(), name="comment_update"),
+    path("comment/<int:pk>/delete/", views.CommentDeleteView.as_view(), name="comment_delete"),
 
-    path("post/<int:post_id>/comment/", views.add_comment, name="add_comment"),
-    path("comment/<int:pk>/edit/", views.edit_comment, name="edit_comment"),
-    path("comment/<int:pk>/delete/", views.delete_comment, name="delete_comment"),
-
-    path("tags/<str:tag_name>/", views.posts_by_tag, name="posts_by_tag"),
-    path("search/", views.search_posts, name="search_posts"),
+    # Search
+    path("search/", views.PostSearchListView.as_view(), name="post_search"),
 ]
