@@ -5,21 +5,22 @@ from django.urls import reverse_lazy
 from django.db.models import Q
 
 from .models import Post, Comment
-from .forms import PostForm, CommentForm
-from taggit.models import Tag
-
+from .forms import CommentForm
 
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.forms import UserCreationForm, UserChangeForm
 from django.contrib import messages
-# -----------------------------
+
+
+# =============================
 # Post Views
-# -----------------------------
+# =============================
+
 class PostListView(ListView):
     model = Post
     template_name = "blog/post_list.html"
     context_object_name = "posts"
-    ordering = ["-date_posted"]
+    ordering = ["-published_date"]
 
 
 class PostDetailView(DetailView):
@@ -29,7 +30,7 @@ class PostDetailView(DetailView):
 
 class PostCreateView(LoginRequiredMixin, CreateView):
     model = Post
-    form_class = PostForm
+    fields = ["title", "content"]
 
     def form_valid(self, form):
         form.instance.author = self.request.user
@@ -38,7 +39,7 @@ class PostCreateView(LoginRequiredMixin, CreateView):
 
 class PostUpdateView(LoginRequiredMixin, UserPassesTestMixin, UpdateView):
     model = Post
-    form_class = PostForm
+    fields = ["title", "content"]
 
     def form_valid(self, form):
         form.instance.author = self.request.user
@@ -58,9 +59,10 @@ class PostDeleteView(LoginRequiredMixin, UserPassesTestMixin, DeleteView):
         return self.request.user == post.author
 
 
-# -----------------------------
+# =============================
 # Comment Views
-# -----------------------------
+# =============================
+
 class CommentCreateView(LoginRequiredMixin, CreateView):
     model = Comment
     form_class = CommentForm
@@ -97,9 +99,10 @@ class CommentDeleteView(LoginRequiredMixin, UserPassesTestMixin, DeleteView):
         return self.request.user == comment.author
 
 
-# -----------------------------
+# =============================
 # Search View
-# -----------------------------
+# =============================
+
 class PostSearchListView(ListView):
     model = Post
     template_name = "blog/post_search.html"
@@ -114,6 +117,8 @@ class PostSearchListView(ListView):
                 Q(tags__name__icontains=query)
             ).distinct()
         return Post.objects.none()
+
+
 class PostByTagListView(ListView):
     model = Post
     template_name = "blog/post_by_tag.html"
@@ -124,10 +129,10 @@ class PostByTagListView(ListView):
         return Post.objects.filter(tags__slug=tag_slug)
 
 
-
-# -----------------------------
+# =============================
 # Register View
-# -----------------------------
+# =============================
+
 def register(request):
     if request.method == "POST":
         form = UserCreationForm(request.POST)
@@ -141,15 +146,16 @@ def register(request):
     return render(request, "blog/register.html", {"form": form})
 
 
-# -----------------------------
-# Profile View 
-# -----------------------------
+# =============================
+# Profile View
+# =============================
+
 @login_required
 def profile(request):
-    if request.method == "POST":  
+    if request.method == "POST":
         form = UserChangeForm(request.POST, instance=request.user)
         if form.is_valid():
-            form.save()            
+            form.save()
             messages.success(request, "Your profile has been updated!")
             return redirect("profile")
     else:
