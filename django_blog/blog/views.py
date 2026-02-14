@@ -1,4 +1,4 @@
-from django.shortcuts import get_object_or_404, render
+from django.shortcuts import get_object_or_404, render, redirect
 from django.views.generic import ListView, DetailView, CreateView, UpdateView, DeleteView
 from django.contrib.auth.mixins import LoginRequiredMixin, UserPassesTestMixin
 from django.urls import reverse_lazy
@@ -8,6 +8,10 @@ from .models import Post, Comment
 from .forms import PostForm, CommentForm
 from taggit.models import Tag
 
+
+from django.contrib.auth.decorators import login_required
+from django.contrib.auth.forms import UserCreationForm, UserChangeForm
+from django.contrib import messages
 # -----------------------------
 # Post Views
 # -----------------------------
@@ -118,3 +122,37 @@ class PostByTagListView(ListView):
     def get_queryset(self):
         tag_slug = self.kwargs.get("tag_slug")
         return Post.objects.filter(tags__slug=tag_slug)
+
+
+
+# -----------------------------
+# Register View
+# -----------------------------
+def register(request):
+    if request.method == "POST":
+        form = UserCreationForm(request.POST)
+        if form.is_valid():
+            form.save()
+            messages.success(request, "Account created successfully!")
+            return redirect("login")
+    else:
+        form = UserCreationForm()
+
+    return render(request, "blog/register.html", {"form": form})
+
+
+# -----------------------------
+# Profile View 
+# -----------------------------
+@login_required
+def profile(request):
+    if request.method == "POST":  
+        form = UserChangeForm(request.POST, instance=request.user)
+        if form.is_valid():
+            form.save()            
+            messages.success(request, "Your profile has been updated!")
+            return redirect("profile")
+    else:
+        form = UserChangeForm(instance=request.user)
+
+    return render(request, "blog/profile.html", {"form": form})
