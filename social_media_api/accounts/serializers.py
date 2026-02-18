@@ -1,7 +1,9 @@
 from rest_framework import serializers
 from .models import User
+from rest_framework.authtoken.models import Token
+from django.contib.auth import get_user_model
 
-class Profileserializer(serializers.ModelSerializer):
+class ProfileSerializer(serializers.ModelSerializer):
     followers_count = serializers.SerializerMethodField()
     following_count = serializers.SerializerMethodField()   
 
@@ -11,4 +13,21 @@ class Profileserializer(serializers.ModelSerializer):
     def get_followers_count(self, obj):
         return obj.followers.count()    
     def get_following_count(self, obj):
-        return obj.following.count()    
+        return obj.following.count() 
+         
+#serializer that handles user registartion
+  
+class RegisterSerializer(serializers.ModelSerializer):
+    password = serializers.CharField(write_only=True)
+
+    class Meta:
+        model = get_user_model()
+        fields = ['username', 'email', 'password']
+    def create(self, validated_data):
+        user = get_user_model().objects.create_user(
+            username=validated_data['username'],
+            email=validated_data.get['email'],
+            password=validated_data['password']
+        )
+        Token.objects.create(user=user)
+        return user
