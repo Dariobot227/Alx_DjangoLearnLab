@@ -10,9 +10,8 @@ from rest_framework import status
 from .models import Post, Comment, Like
 from .serializers import PostSerializer, CommentSerializer
 from notifications.models import Notification
-# -----------------------------
-# Permissions
-# -----------------------------
+
+
 class IsAuthorOrReadOnly(permissions.BasePermission):
     """
     Custom permission:
@@ -25,9 +24,6 @@ class IsAuthorOrReadOnly(permissions.BasePermission):
         return obj.author == request.user
 
 
-# -----------------------------
-# Post ViewSet
-# -----------------------------
 class PostViewSet(viewsets.ModelViewSet):
     queryset = Post.objects.all().order_by('-created_at')
     serializer_class = PostSerializer
@@ -41,10 +37,9 @@ class PostViewSet(viewsets.ModelViewSet):
 
     @action(detail=True, methods=['post'], permission_classes=[permissions.IsAuthenticated])
     def like(self, request, pk=None):
-        # Must match checker: use generics.get_object_or_404
+        
         post = generics.get_object_or_404(Post, pk=pk)
 
-        # Must match checker: user first
         like, created = Like.objects.get_or_create(user=request.user, post=post)
 
         if not created:
@@ -61,7 +56,7 @@ class PostViewSet(viewsets.ModelViewSet):
 
     @action(detail=True, methods=['post'], permission_classes=[permissions.IsAuthenticated])
     def unlike(self, request, pk=None):
-        # Use checker literal
+       
         post = generics.get_object_or_404(Post, pk=pk)
 
         deleted, _ = Like.objects.filter(user=request.user, post=post).delete()
@@ -109,10 +104,9 @@ class FeedView(APIView):
         4. Serialize and return the posts
         """
 
-        # Must match checker exactly
         following_users = request.user.following.all()
 
-        # Rubric literal: this line must appear exactly
+        
         posts = Post.objects.filter(author__in=following_users).order_by('-created_at')
 
 
