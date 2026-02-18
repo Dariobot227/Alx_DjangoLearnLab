@@ -1,28 +1,19 @@
-
-from rest_framework import viewsets, permissions, status
-from rest_framework.decorators import action
+from rest_framework import generics, permissions, status
 from rest_framework.response import Response
 from django.shortcuts import get_object_or_404
 from .models import User
-from .serializers import ProfileSerializer
-class UserViewSet(viewsets.ReadOnlyModelViewSet):
+
+
+class FollowUserView(generics.GenericAPIView):
     """
-    Provides:
-    - list users
-    - retrieve user profile
-    - custom follow/unfollow actions
+    Allows the authenticated user to follow another user.
     """
 
-    queryset = User.objects.all()
-    serializer_class = ProfileSerializer
+    queryset = CustomUser.objects.all()
     permission_classes = [permissions.IsAuthenticated]
 
-    @action(detail=True, methods=['post'])
-    def follow(self, request, pk=None):
-        """
-        Current user follows the target user.
-        """
-        target_user = get_object_or_404(User, pk=pk)
+    def post(self, request, user_id):
+        target_user = get_object_or_404(CustomUser, id=user_id)
 
         if target_user == request.user:
             return Response(
@@ -37,12 +28,23 @@ class UserViewSet(viewsets.ReadOnlyModelViewSet):
             status=status.HTTP_200_OK
         )
 
-    @action(detail=True, methods=['post'])
-    def unfollow(self, request, pk=None):
-        """
-        Current user unfollows the target user.
-        """
-        target_user = get_object_or_404(User, pk=pk)
+
+class UnfollowUserView(generics.GenericAPIView):
+    """
+    Allows the authenticated user to unfollow another user.
+    """
+
+    queryset = CustomUser.objects.all()
+    permission_classes = [permissions.IsAuthenticated]
+
+    def post(self, request, user_id):
+        target_user = get_object_or_404(CustomUser, id=user_id)
+
+        if target_user == request.user:
+            return Response(
+                {"error": "You cannot unfollow yourself."},
+                status=status.HTTP_400_BAD_REQUEST
+            )
 
         request.user.following.remove(target_user)
 
