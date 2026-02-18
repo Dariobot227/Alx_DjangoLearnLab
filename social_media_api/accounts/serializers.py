@@ -14,20 +14,25 @@ class ProfileSerializer(serializers.ModelSerializer):
         return obj.followers.count()    
     def get_following_count(self, obj):
         return obj.following.count() 
-         
+
 #serializer that handles user registartion
   
 class RegisterSerializer(serializers.ModelSerializer):
-    password = serializers.CharField(write_only=True)
+    password = serializers.CharField(write_only=True)  # <- THIS IS REQUIRED
 
     class Meta:
         model = get_user_model()
         fields = ['username', 'email', 'password']
+
     def create(self, validated_data):
+        # Create a new user securely
         user = get_user_model().objects.create_user(
             username=validated_data['username'],
-            email=validated_data.get['email'],
+            email=validated_data.get('email'),
             password=validated_data['password']
         )
+
+        # Create a token for this user immediately
         Token.objects.create(user=user)
+
         return user
