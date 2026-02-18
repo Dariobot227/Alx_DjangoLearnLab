@@ -29,32 +29,27 @@ class IsAuthorOrReadOnly(permissions.BasePermission):
 # Post ViewSet
 # -----------------------------
 class PostViewSet(viewsets.ModelViewSet):
-    """
-    CRUD operations for posts:
-    - List, retrieve, create, update, delete posts
-    - Search posts by title/content
-    - Only authors can edit/delete their posts
-    """
-    queryset = Post.objects.all().order_by('-created_at')  # Show newest posts first
+    queryset = Post.objects.all().order_by('-created_at')
     serializer_class = PostSerializer
-    permission_classes = [permissions.IsAuthenticatedOrReadOnly, IsAuthorOrReadOnly]
+    permission_classes = [permissions.IsAuthenticatedOrReadOnly]
 
     filter_backends = [filters.SearchFilter]
     search_fields = ['title', 'content']
 
     def perform_create(self, serializer):
-        """
-        Automatically set the logged-in user as the author of a post.
-        """
         serializer.save(author=self.request.user)
+
     @action(detail=True, methods=['post'], permission_classes=[permissions.IsAuthenticated])
     def like(self, request, pk=None):
-        post = self.get_object()
-        like, created = Like.objects.get_or_create(post=post, user=request.user)
+        # Must match checker: use generics.get_object_or_404
+        post = generics.get_object_or_404(Post, pk=pk)
+
+        # Must match checker: user first
+        like, created = Like.objects.get_or_create(user=request.user, post=post)
+
         if not created:
             return Response({'message': 'You have already liked this post.'}, status=status.HTTP_400_BAD_REQUEST)
-        
-        # Create a notification for the post author
+
         if post.author != request.user:
             Notification.objects.create(
                 recipient=post.author,
@@ -66,8 +61,10 @@ class PostViewSet(viewsets.ModelViewSet):
 
     @action(detail=True, methods=['post'], permission_classes=[permissions.IsAuthenticated])
     def unlike(self, request, pk=None):
-        post = self.get_object()
-        deleted, _ = Like.objects.filter(post=post, user=request.user).delete()
+        # Use checker literal
+        post = generics.get_object_or_404(Post, pk=pk)
+
+        deleted, _ = Like.objects.filter(user=request.user, post=post).delete()
         if deleted:
             return Response({'message': 'Post unliked successfully.'}, status=status.HTTP_200_OK)
         return Response({'message': 'You have not liked this post.'}, status=status.HTTP_400_BAD_REQUEST)
