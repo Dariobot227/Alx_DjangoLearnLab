@@ -4,9 +4,12 @@ from rest_framework.response import Response
 from rest_framework.permissions import IsAuthenticated
 from django.shortcuts import get_object_or_404
 
-from .models import Post, Comment
-from .serializers import PostSerializer, CommentSerializer
+from rest_framework.decorators import action
+from rest_framework import status
 
+from .models import Post, Comment, Like
+from .serializers import PostSerializer, CommentSerializer
+from notifications.models import Notification
 # -----------------------------
 # Permissions
 # -----------------------------
@@ -44,7 +47,30 @@ class PostViewSet(viewsets.ModelViewSet):
         Automatically set the logged-in user as the author of a post.
         """
         serializer.save(author=self.request.user)
+    @action(detail=True, methods=['post'], permission_classes=[permissions.IsAuthenticated])
+    def like(self, request, pk=None):
+        post = self.get_object()
+        like, created = Like.objects.get_or_create(post=post, user=request.user)
+        if not created:
+            return Response({'message': 'You have already liked this post.'}, status=status.HTTP_400_BAD_REQUEST)
+        
+        # Create a notification for the post author
+        if post.author != request.user:
+            Notification.objects.create(
+                recipient=post.author,
+                actor=request.user,
+                verb='liked',
+                target=post
+            )
+        return Response({'message': 'Post liked successfully.'}, status=status.HTTP_200_OK)
 
+    @action(detail=True, methods=['post'], permission_classes=[permissions.IsAuthenticated])
+    def unlike(self, request, pk=None):
+        post = self.get_object()
+        deleted, _ = Like.objects.filter(post=post, user=request.user).delete()
+        if deleted:
+            return Response({'message': 'Post unliked successfully.'}, status=status.HTTP_200_OK)
+        return Response({'message': 'You have not liked this post.'}, status=status.HTTP_400_BAD_REQUEST)
 
 # -----------------------------
 # Comment ViewSet
@@ -91,7 +117,7 @@ class FeedView(APIView):
 
         # Rubric literal: this line must appear exactly
         posts = Post.objects.filter(author__in=following_users).order_by('-created_at')
-        
+
 
         serializer = PostSerializer(posts, many=True)
         return Response(serializer.data)

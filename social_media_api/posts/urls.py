@@ -8,6 +8,7 @@ router = DefaultRouter()
 router.register(r'posts', PostViewSet, basename='post')       # CRUD for posts
 router.register(r'comments', CommentViewSet, basename='comment')  # CRUD for comments
 
+urlpatterns = router.urls
 # Include router URLs in urlpatterns
 urlpatterns = [
     path('', include(router.urls)),
