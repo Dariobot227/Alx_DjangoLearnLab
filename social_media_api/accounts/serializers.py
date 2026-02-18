@@ -21,8 +21,7 @@ class ProfileSerializer(serializers.ModelSerializer):
 
 # Registration serializer
 class RegisterSerializer(serializers.ModelSerializer):
-    password = serializers.CharField(write_only=True)  # MUST be here exactly
-
+    password = serializers.CharField(write_only=True)  
     class Meta:
         model = get_user_model()
         fields = ['username', 'email', 'password']
@@ -36,8 +35,8 @@ class RegisterSerializer(serializers.ModelSerializer):
         Token.objects.create(user=user)
         return user
 class LoginSerializer(serializers.Serializer):
-    username = serializers.CharField()       # <-- REQUIRED
-    password = serializers.CharField(write_only=True)  # <-- REQUIRED
+    username = serializers.CharField()       
+    password = serializers.CharField(write_only=True)  
 
     def validate(self, data):
         user = authenticate(

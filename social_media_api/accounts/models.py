@@ -1,7 +1,7 @@
 from django.db import models
 from django.contrib.auth.models import AbstractUser
 # Create your models here.
-class User(abstractUser):
+class User(AbstractUser):
     """this extends django default user model, it adds the additional
         fields below ie:bio, profile pic and the followers
 
