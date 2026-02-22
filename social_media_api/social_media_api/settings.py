@@ -9,7 +9,8 @@ https://docs.djangoproject.com/en/6.0/topics/settings/
 For the full list of settings and their values, see
 https://docs.djangoproject.com/en/6.0/ref/settings/
 """
-
+import dj_database_url
+from decouple import config
 from pathlib import Path
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
@@ -20,12 +21,12 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # See https://docs.djangoproject.com/en/6.0/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = 'django-insecure-#*3&yv%q)h(s5qiesey5vml#vz99!a*#haw#94nk*dy9y&g!7t'
+SECRET_KEY = config('SECRET_KEY')
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+DEBUG = False
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = config('ALLOWED_HOSTS').split(',')  
 
 
 # Application definition
@@ -79,13 +80,12 @@ WSGI_APPLICATION = 'social_media_api.wsgi.application'
 # Database
 # https://docs.djangoproject.com/en/6.0/ref/settings/#databases
 
-DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': BASE_DIR / 'db.sqlite3',
-    }
-}
 
+DATABASES = {
+    'default': dj_database_url.config(
+        default=f"postgres://{config('DB_USER')}:{config('DB_PASSWORD')}@{config('DB_HOST')}:{config('DB_PORT')}/{config('DB_NAME')}"
+    )
+}
 
 # Password validation
 # https://docs.djangoproject.com/en/6.0/ref/settings/#auth-password-validators
@@ -121,4 +121,15 @@ USE_TZ = True
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/6.0/howto/static-files/
 
-STATIC_URL = 'static/'
+STATIC_URL = '/static/'
+STATIC_ROOT = BASE_DIR / 'staticfiles'
+
+MEDIA_URL = '/media/'
+MEDIA_ROOT = BASE_DIR / 'media'
+
+SECURE_BROWSER_XSS_FILTER = True
+X_FRAME_OPTIONS = 'DENY'
+SECURE_CONTENT_TYPE_NOSNIFF = True
+SECURE_SSL_REDIRECT = True
+SESSION_COOKIE_SECURE = True
+CSRF_COOKIE_SECURE = True
